@@ -39,28 +39,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[100],
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: const Padding(
-            padding: EdgeInsets.all(12.0),
-            child: Icon(Icons.food_bank, color: Color(0xFF2D2D3D)),
-          ),
-          title: const Align(
-            alignment: Alignment.centerRight, // 👈 Pushes to the right edge
-            child: Text(
-              'Dashboard',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: const Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Icon(Icons.food_bank, color: Color(0xFF2D2D3D)),
+        ),
+        title: const Align(
+          alignment: Alignment.centerRight, // 👈 Pushes to the right edge
+          child: Text(
+            'Dashboard',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          centerTitle: false,
-          actions: const [], // no spacer — allows text to reach the edge
         ),
+        centerTitle: false,
+        actions: const [], // no spacer — allows text to reach the edge
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,6 +308,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           setState(() {
             _selectedIndex = index;
           });
+          if (index == 1) {
+            Navigator.pushNamed(context, '/inventory');
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
