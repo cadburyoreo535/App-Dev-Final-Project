@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/inventory_screen.dart';
+import 'screens/procurement_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const DashboardScreen(),
         '/inventory': (context) => const InventoryScreen(),
+        '/procurement': (context) => const ProcurementScreen(),
       },
     );
   }

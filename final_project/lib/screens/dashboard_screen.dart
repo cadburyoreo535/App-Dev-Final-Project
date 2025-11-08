@@ -197,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ..._foodItems.map((item) => _buildFoodItemCard(item)).toList(),
+          ..._foodItems.map((item) => _buildFoodItemCard(item)),
         ],
       ),
     );
@@ -310,6 +310,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           });
           if (index == 1) {
             Navigator.pushNamed(context, '/inventory');
+          } else if (index == 4) {
+            Navigator.pushNamed(context, '/procurement');
           }
         },
         type: BottomNavigationBarType.fixed,

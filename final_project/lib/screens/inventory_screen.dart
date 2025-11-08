@@ -192,7 +192,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${item.weight < 1 ? '${(item.weight * 1000).toInt()} g' : '${item.weight.toInt()} ${item.weight < 2 ? 'Liter' : 'kg'}'}',
+                  item.weight < 1 ? '${(item.weight * 1000).toInt()} g' : '${item.weight.toInt()} ${item.weight < 2 ? 'Liter' : 'kg'}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -260,7 +260,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
             _selectedIndex = index;
           });
           if (index == 0) {
-            Navigator.pop(context);
+            Navigator.pushNamed(context, '/');
+          } else if (index == 1) {
+            Navigator.pushNamed(context, '/inventory');
+          } else if (index == 4) {
+            Navigator.pushNamed(context, '/procurement');
           }
         },
         type: BottomNavigationBarType.fixed,
