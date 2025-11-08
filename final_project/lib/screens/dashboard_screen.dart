@@ -39,7 +39,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -60,6 +60,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         centerTitle: false,
         actions: const [], // no spacer — allows text to reach the edge
+        // <-- add divider directly under app bar/title
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1, thickness: 1, color: Color.fromARGB(255, 207, 207, 218)),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -302,50 +307,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-          if (index == 1) {
-            Navigator.pushNamed(context, '/inventory');
-          } else if (index == 4) {
-            Navigator.pushNamed(context, '/procurement');
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF6366F1),
-        unselectedItemColor: Colors.grey[600],
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2_outlined),
-            activeIcon: Icon(Icons.inventory_2),
-            label: 'Inventory',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_outlined),
-            activeIcon: Icon(Icons.receipt),
-            label: 'Recipes',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart),
-            activeIcon: Icon(Icons.show_chart),
-            label: 'Spoilage',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.local_grocery_store_outlined),
-            activeIcon: Icon(Icons.local_grocery_store),
-            label: 'Procurement',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // subtle line under title / above the nav bar
+          const Divider(height: 1, thickness: 1, color: Color.fromARGB(255, 207, 207, 218)),
+          BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: (index) {
+              setState(() {
+                _selectedIndex = index;
+              });
+              if (index == 0) Navigator.pushNamed(context, '/');
+              if (index == 1) Navigator.pushNamed(context, '/inventory');
+              if (index == 2) Navigator.pushNamed(context, '/recipes');
+              if (index == 3) Navigator.pushNamed(context, '/spoilage');
+              if (index == 4) Navigator.pushNamed(context, '/procurement');
+            },
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: const Color(0xFF6366F1),
+            unselectedItemColor: Colors.grey[600],
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: '',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.inventory_2_outlined),
+                activeIcon: Icon(Icons.inventory_2),
+                label: 'Inventory',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.receipt_outlined),
+                activeIcon: Icon(Icons.receipt),
+                label: 'Recipes',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.show_chart),
+                activeIcon: Icon(Icons.show_chart),
+                label: 'Spoilage',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.local_grocery_store_outlined),
+                activeIcon: Icon(Icons.local_grocery_store),
+                label: 'Procurement',
+              ),
+            ],
           ),
         ],
       ),
