@@ -3,7 +3,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/procurement_screen.dart';
 import 'screens/recipes_screen.dart';
-// import 'screens/spoilage_screen.dart';
+import 'screens/spoilage_screen.dart';
 
 
 void main() {
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         '/inventory': (context) => const InventoryScreen(),
         '/procurement': (context) => const ProcurementScreen(),
         '/recipes': (context) => const RecipesScreen(),
-        // '/spoilage': (context) => const SpoilageScreen(),
+        '/spoilage': (context) => const SpoilageScreen(),
       },
     );
   }

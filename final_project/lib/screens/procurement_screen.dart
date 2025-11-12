@@ -166,7 +166,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
           Row(
             children: [
               Text(
-                '${_procuredCount} of ${_items.length} Items Procured',
+                '$_procuredCount of ${_items.length} Items Procured',
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               const Spacer(),
