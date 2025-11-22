@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food_item.dart';
+import 'add_new_item.dart'; // <--- added import
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -80,7 +81,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
       // Added floating action button at bottom-right
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: open "Add Item" form / modal
+          // push the AddNewItemScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddNewItemScreen()),
+          );
         },
         backgroundColor: const Color(0xFF6366F1),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
