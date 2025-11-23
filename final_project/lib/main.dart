@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6366F1)),
         useMaterial3: true,
-        fontFamily: 'Open Sans',
+        fontFamily: 'Kedebideri',
       ),
       initialRoute: '/login',
       routes: {
