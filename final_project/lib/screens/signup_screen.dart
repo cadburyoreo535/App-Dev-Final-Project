@@ -208,10 +208,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty)
+                      if (v == null || v.trim().isEmpty) {
                         return 'Please enter email';
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim()))
+                      }
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v.trim())) {
                         return 'Enter valid email';
+                      }
                       return null;
                     },
                   ),
@@ -250,10 +252,12 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty)
+                      if (v == null || v.trim().isEmpty) {
                         return 'Please enter password';
-                      if (v.trim().length < 6)
+                      }
+                      if (v.trim().length < 6) {
                         return 'Password must be at least 6 characters';
+                      }
                       return null;
                     },
                   ),
