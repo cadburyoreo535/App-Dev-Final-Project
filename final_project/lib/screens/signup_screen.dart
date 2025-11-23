@@ -54,18 +54,33 @@ class _SignupScreenState extends State<SignupScreen> {
           .timeout(const Duration(seconds: 20));
       debugPrint('signup: user created ${cred.user?.uid}');
 
-      debugPrint('signup: writing user doc');
-      await _firestore
-          .collection('users')
-          .doc(cred.user!.uid)
-          .set({
-            'firstName': _firstController.text.trim(),
-            'lastName': _lastController.text.trim(),
-            'email': _emailController.text.trim(),
-            'createdAt': FieldValue.serverTimestamp(),
-          })
-          .timeout(const Duration(seconds: 20));
-      debugPrint('signup: firestore write done');
+      // Try to write the user doc but don't block navigation on failure.
+      try {
+        debugPrint('signup: writing user doc');
+        await _firestore
+            .collection('users')
+            .doc(cred.user!.uid)
+            .set({
+              'firstName': _firstController.text.trim(),
+              'lastName': _lastController.text.trim(),
+              'email': _emailController.text.trim(),
+              'createdAt': FieldValue.serverTimestamp(),
+            })
+            .timeout(const Duration(seconds: 20));
+        debugPrint('signup: firestore write done');
+      } catch (e, st) {
+        debugPrint('Firestore write failed: $e\n$st');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Account created but failed to save profile (Firestore). You can continue to login.',
+              ),
+            ),
+          );
+        }
+        // continue to login regardless of Firestore result
+      }
 
       if (!mounted) return;
       ScaffoldMessenger.of(
