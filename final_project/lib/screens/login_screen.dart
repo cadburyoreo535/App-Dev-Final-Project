@@ -79,10 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Username or Email',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[700],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -92,15 +89,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'Enter your username or email',
                       filled: true,
                       fillColor: const Color(0xFFF7F7F8),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Please enter username' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Please enter username'
+                        : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -109,10 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       'Password',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[700],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -123,10 +120,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'Enter your password',
                       filled: true,
                       fillColor: const Color(0xFFF7F7F8),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                        icon: Icon(
+                          _obscure ? Icons.visibility_off : Icons.visibility,
+                        ),
                         onPressed: () => setState(() => _obscure = !_obscure),
                       ),
                       border: OutlineInputBorder(
@@ -134,8 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Please enter password' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Please enter password'
+                        : null,
                   ),
                   const SizedBox(height: 22),
 
@@ -146,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6F8C86),
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -154,7 +157,37 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       child: const Text(
                         'Login',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Sign up button (below Login) - changed to match Login style
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6F8C86),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Sign up',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

@@ -5,6 +5,7 @@ import 'screens/procurement_screen.dart';
 import 'screens/recipes_screen.dart';
 import 'screens/spoilage_screen.dart';
 import 'screens/login_screen.dart'; 
+import 'screens/signup_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         '/procurement': (context) => const ProcurementScreen(),
         '/recipes': (context) => const RecipesScreen(),
         '/spoilage': (context) => const SpoilageScreen(),
+        '/signup': (context) => const SignupScreen(),
       },
     );
   }
