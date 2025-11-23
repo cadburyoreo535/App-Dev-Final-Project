@@ -11,7 +11,10 @@ import 'screens/signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final opts = DefaultFirebaseOptions.currentPlatform;
+  print('Using Firebase options: $opts'); // debug
+  await Firebase.initializeApp(options: opts);
+  print('Firebase initialized');
   runApp(const MyApp());
 }
 
