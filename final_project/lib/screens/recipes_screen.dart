@@ -85,7 +85,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F3FF),
+        color: const Color(0xFFA0D4CF).withOpacity(0.35),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -176,7 +176,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             child: ElevatedButton(
               onPressed: _generateRecipes,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6366F1),
+                backgroundColor: const Color(0xFF469E9C),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -274,7 +274,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
                             onPressed: () {},
                             child: const Text(
                               'View',
-                              style: TextStyle(color: Color(0xFF6366F1)),
+                              style: TextStyle(color: Color(0xFF469E9C)),
                             ),
                           ),
                         ],
@@ -335,7 +335,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
-            selectedItemColor: const Color(0xFF6366F1),
+            selectedItemColor: const Color(0xFF469E9C),
             unselectedItemColor: Colors.grey[600],
             selectedFontSize: 12,
             unselectedFontSize: 12,

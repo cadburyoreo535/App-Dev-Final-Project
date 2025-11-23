@@ -99,7 +99,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
-            selectedItemColor: const Color(0xFF6366F1),
+            selectedItemColor: const Color(0xFF469E9C),
             unselectedItemColor: Colors.grey[600],
             selectedFontSize: 12,
             unselectedFontSize: 12,

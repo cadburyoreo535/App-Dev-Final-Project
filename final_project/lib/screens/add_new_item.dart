@@ -84,7 +84,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0EEFF),
+                  color: const Color(0xFFA0D4CF).withOpacity(0.35),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -158,7 +158,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0EEFF),
+                  color: const Color(0xFFA0D4CF).withOpacity(0.35),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -236,7 +236,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0EEFF),
+                  color: const Color(0xFFA0D4CF).withOpacity(0.35),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -283,7 +283,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                 child: ElevatedButton(
                   onPressed: _saveIngredient,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
+                    backgroundColor: const Color(0xFF469E9C),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
@@ -340,7 +340,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
-            selectedItemColor: const Color(0xFF6366F1),
+            selectedItemColor: const Color(0xFF469E9C),
             unselectedItemColor: Colors.grey[600],
             selectedFontSize: 12,
             unselectedFontSize: 12,
