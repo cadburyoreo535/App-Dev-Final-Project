@@ -19,8 +19,8 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Image.asset('assets/icons/logo.png'),
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         actions: [
           Padding(
@@ -31,7 +31,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
                 style: TextStyle(
                   color: Colors.black87,
                   fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
@@ -145,7 +145,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
           'Recently Spoiled Ingredients',
           style: TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w900,
             color: Colors.black87,
           ),
         ),
@@ -233,7 +233,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
             'Spoilage Overview',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
               color: Colors.black87,
             ),
           ),
@@ -320,7 +320,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
             'Monthly Spoilage Trend',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
               color: Colors.black87,
             ),
           ),
@@ -445,7 +445,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
             'Spoilage by Category',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
               color: Colors.black87,
             ),
           ),

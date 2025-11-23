@@ -67,9 +67,9 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(Icons.food_bank, color: Color(0xFF2D2D3D)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         title: const Align(
           alignment: Alignment.centerRight,
@@ -78,7 +78,7 @@ class _ProcurementScreenState extends State<ProcurementScreen> {
             style: TextStyle(
               color: Colors.black,
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ),

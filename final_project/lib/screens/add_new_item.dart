@@ -48,9 +48,9 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(Icons.food_bank, color: Color(0xFF2D2D3D)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         title: const Align(
           alignment: Alignment.centerRight,
@@ -59,7 +59,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
             style: TextStyle(
               color: Colors.black,
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ),
@@ -92,8 +92,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                   children: [
                     const Text(
                       'Ingredient Details',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -103,7 +105,9 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 12),
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -116,18 +120,29 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                     DropdownButtonFormField<String>(
                       value: _category,
                       items: const [
-                        DropdownMenuItem(value: 'Vegetables', child: Text('Vegetables')),
+                        DropdownMenuItem(
+                          value: 'Vegetables',
+                          child: Text('Vegetables'),
+                        ),
                         DropdownMenuItem(value: 'Dairy', child: Text('Dairy')),
                         DropdownMenuItem(value: 'Meat', child: Text('Meat')),
-                        DropdownMenuItem(value: 'Grains', child: Text('Grains')),
-                        DropdownMenuItem(value: 'Fruits', child: Text('Fruits')),
+                        DropdownMenuItem(
+                          value: 'Grains',
+                          child: Text('Grains'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Fruits',
+                          child: Text('Fruits'),
+                        ),
                       ],
                       onChanged: (v) => setState(() => _category = v!),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -151,8 +166,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                   children: [
                     const Text(
                       'Inventory & Pricing',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -160,44 +177,52 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _quantityController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: InputDecoration(
                               hintText: 'e.g., 5',
                               suffixText: 'kg',
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            validator: (v) =>
-                                (v == null || v.trim().isEmpty) ? 'Enter qty' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Enter qty'
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
                             controller: _priceController,
-                            keyboardType:
-                                const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: InputDecoration(
                               prefixText: '₱ ',
                               hintText: 'e.g., 2.50',
                               filled: true,
                               fillColor: Colors.white,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                                 borderSide: BorderSide.none,
                               ),
                             ),
-                            validator: (v) =>
-                                (v == null || v.trim().isEmpty) ? 'Enter price' : null,
+                            validator: (v) => (v == null || v.trim().isEmpty)
+                                ? 'Enter price'
+                                : null,
                           ),
                         ),
                       ],
@@ -219,8 +244,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                   children: [
                     const Text(
                       'Expiration Date',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     InkWell(
@@ -238,9 +265,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                               ? 'Select date'
                               : '${_expirationDate!.year}-${_expirationDate!.month.toString().padLeft(2, '0')}-${_expirationDate!.day.toString().padLeft(2, '0')}',
                           style: TextStyle(
-                              color: _expirationDate == null
-                                  ? Colors.grey
-                                  : Colors.black87),
+                            color: _expirationDate == null
+                                ? Colors.grey
+                                : Colors.black87,
+                          ),
                         ),
                       ),
                     ),
@@ -294,7 +322,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Divider(
-              height: 1, thickness: 1, color: Color.fromARGB(255, 207, 207, 218)),
+            height: 1,
+            thickness: 1,
+            color: Color.fromARGB(255, 207, 207, 218),
+          ),
           BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (index) {

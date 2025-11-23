@@ -30,9 +30,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(Icons.restaurant_menu, color: Color(0xFF2D2D3D)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         title: const Align(
           alignment: Alignment.centerRight,
@@ -41,7 +41,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             style: TextStyle(
               color: Colors.black,
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ),
@@ -95,7 +95,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             'Select Ingredients',
             style: TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w900,
               color: Color(0xFF2D2D3D),
             ),
           ),
@@ -240,7 +240,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
             'Saved Recipes',
             style: TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
               color: Color(0xFF2D2D3D),
             ),
           ),

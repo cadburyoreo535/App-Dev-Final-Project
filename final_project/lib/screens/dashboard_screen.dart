@@ -43,9 +43,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Icon(Icons.food_bank, color: Color(0xFF2D2D3D)),
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         title: const Align(
           alignment: Alignment.centerRight, // 👈 Pushes to the right edge
@@ -54,7 +54,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             style: TextStyle(
               color: Colors.black,
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
             ),
           ),
         ),
@@ -201,7 +201,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             'Critical Alerts',
             style: TextStyle(
               fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w900,
               color: Color(0xFF2D2D3D),
             ),
           ),
