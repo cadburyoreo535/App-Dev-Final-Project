@@ -4,7 +4,7 @@ import 'screens/inventory_screen.dart';
 import 'screens/procurement_screen.dart';
 import 'screens/recipes_screen.dart';
 import 'screens/spoilage_screen.dart';
-
+import 'screens/login_screen.dart'; 
 
 void main() {
   runApp(const MyApp());
@@ -23,9 +23,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'Open Sans',
       ),
-      initialRoute: '/',
+      initialRoute: '/', 
       routes: {
         '/': (context) => const DashboardScreen(),
+        '/login': (context) => const LoginScreen(), 
         '/inventory': (context) => const InventoryScreen(),
         '/procurement': (context) => const ProcurementScreen(),
         '/recipes': (context) => const RecipesScreen(),
