@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'kusina-mate.firebasestorage.app',
     measurementId: 'G-1415F8HF6E',
   );
+
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,8 +19,16 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscure = true;
   bool _isLoading = false;
 
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late final FirebaseAuth _auth;
+  late final FirebaseFirestore _firestore;
+
+  @override
+  void initState() {
+    super.initState();
+    // initialize after Firebase.initializeApp ran in main.dart
+    _auth = FirebaseAuth.instance;
+    _firestore = FirebaseFirestore.instance;
+  }
 
   @override
   void dispose() {
@@ -30,73 +39,62 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  // Example signup call with error logging:
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
-
     setState(() => _isLoading = true);
-
+    debugPrint('signup: started for ${_emailController.text.trim()}');
     try {
-      // Create user with Firebase Auth
-      UserCredential userCredential = await _auth
+      debugPrint('signup: creating user');
+      final cred = await _auth
           .createUserWithEmailAndPassword(
             email: _emailController.text.trim(),
-            password: _passController.text.trim(),
-          );
+            password: _passController.text,
+          )
+          .timeout(const Duration(seconds: 20));
+      debugPrint('signup: user created ${cred.user?.uid}');
 
-      // Store additional user data in Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'firstName': _firstController.text.trim(),
-        'lastName': _lastController.text.trim(),
-        'email': _emailController.text.trim(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      debugPrint('signup: writing user doc');
+      await _firestore
+          .collection('users')
+          .doc(cred.user!.uid)
+          .set({
+            'firstName': _firstController.text.trim(),
+            'lastName': _lastController.text.trim(),
+            'email': _emailController.text.trim(),
+            'createdAt': FieldValue.serverTimestamp(),
+          })
+          .timeout(const Duration(seconds: 20));
+      debugPrint('signup: firestore write done');
 
-      // Update display name
-      await userCredential.user!.updateDisplayName(
-        '${_firstController.text.trim()} ${_lastController.text.trim()}',
-      );
-
-      if (mounted) {
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Account created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate to dashboard
-        Navigator.pushReplacementNamed(context, '/');
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Account created')));
+      Navigator.pushReplacementNamed(context, '/login');
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred';
-
-      if (e.code == 'weak-password') {
-        errorMessage = 'The password provided is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'An account already exists for that email.';
-      } else if (e.code == 'invalid-email') {
-        errorMessage = 'The email address is not valid.';
+      debugPrint('FirebaseAuthException: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message ?? e.code)));
       }
-
+    } on TimeoutException catch (e) {
+      debugPrint('TimeoutException: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+          const SnackBar(content: Text('Request timed out. Check network.')),
         );
       }
-    } catch (e) {
+    } catch (e, st) {
+      debugPrint('Signup error: $e\n$st');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
