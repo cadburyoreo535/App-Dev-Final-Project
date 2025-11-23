@@ -300,7 +300,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home),
-                label: '',
+                label: 'Dashboard',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.inventory_2_outlined),

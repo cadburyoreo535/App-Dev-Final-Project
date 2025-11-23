@@ -344,7 +344,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home),
-                label: '',
+                label: 'Dashboard',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.inventory_2_outlined),

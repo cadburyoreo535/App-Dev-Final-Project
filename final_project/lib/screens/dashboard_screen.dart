@@ -63,7 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // <-- add divider directly under app bar/title
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, thickness: 1, color: Color.fromARGB(255, 207, 207, 218)),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Color.fromARGB(255, 207, 207, 218),
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -98,7 +102,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 'Current Spoilage Status',
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w900,
                   color: Color(0xFF2D2D3D),
                 ),
               ),
@@ -311,7 +315,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // subtle line under title / above the nav bar
-          const Divider(height: 1, thickness: 1, color: Color.fromARGB(255, 207, 207, 218)),
+          const Divider(
+            height: 1,
+            thickness: 1,
+            color: Color.fromARGB(255, 207, 207, 218),
+          ),
           BottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: (index) {
@@ -335,7 +343,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.home_outlined),
                 activeIcon: Icon(Icons.home),
-                label: '',
+                label: 'Dashboard',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.inventory_2_outlined),
