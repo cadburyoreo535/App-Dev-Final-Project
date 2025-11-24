@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AddNewItemScreen extends StatefulWidget {
   const AddNewItemScreen({super.key});
@@ -15,6 +17,10 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
   final TextEditingController _priceController = TextEditingController();
   DateTime? _expirationDate;
   String _category = 'Vegetables';
+  bool _isSaving = false;
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void dispose() {
@@ -35,10 +41,60 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
     if (picked != null) setState(() => _expirationDate = picked);
   }
 
-  void _saveIngredient() {
+  Future<void> _saveIngredient() async {
     if (!_formKey.currentState!.validate()) return;
-    // TODO: implement save logic (firestore/local state)
-    Navigator.pop(context);
+
+    if (_expirationDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an expiration date')),
+      );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('User not logged in');
+      }
+
+      // Save ingredient to Firestore
+      await _firestore.collection('ingredients').add({
+        'name': _nameController.text.trim(),
+        'category': _category,
+        'quantity': double.parse(_quantityController.text.trim()),
+        'price': double.parse(_priceController.text.trim()),
+        'expirationDate': Timestamp.fromDate(_expirationDate!),
+        'userId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingredient saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      Navigator.pop(context);
+    } catch (e) {
+      debugPrint('Error saving ingredient: $e');
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving ingredient: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   @override
@@ -107,6 +163,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                             const SizedBox(height: 12),
                             TextFormField(
                               controller: _nameController,
+                              enabled: !_isSaving,
                               decoration: InputDecoration(
                                 hintText: 'e.g., Fresh Tomatoes',
                                 filled: true,
@@ -149,7 +206,9 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                                   child: Text('Fruits'),
                                 ),
                               ],
-                              onChanged: (v) => setState(() => _category = v!),
+                              onChanged: _isSaving
+                                  ? null
+                                  : (v) => setState(() => _category = v!),
                               decoration: InputDecoration(
                                 filled: true,
                                 fillColor: Colors.white,
@@ -191,13 +250,14 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                               children: [
                                 TextFormField(
                                   controller: _quantityController,
+                                  enabled: !_isSaving,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
                                   decoration: InputDecoration(
-                                    hintText: 'e.g., 100',
-                                    suffixText: 'g',
+                                    hintText: 'e.g., 5',
+                                    suffixText: 'kg',
                                     filled: true,
                                     fillColor: Colors.white,
                                     contentPadding: const EdgeInsets.symmetric(
@@ -209,25 +269,28 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                                       borderSide: BorderSide.none,
                                     ),
                                   ),
-                                  validator: (v) =>
-                                      (v == null || v.trim().isEmpty)
-                                      ? 'Enter qty'
-                                      : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'Enter quantity';
+                                    }
+                                    if (double.tryParse(v.trim()) == null) {
+                                      return 'Enter valid number';
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 12),
-                                // replace the existing price TextFormField with this block
                                 TextFormField(
                                   controller: _priceController,
+                                  enabled: !_isSaving,
                                   keyboardType:
                                       const TextInputType.numberWithOptions(
                                         decimal: true,
                                       ),
-                                  textAlign:
-                                      TextAlign.left, // user input aligned left
+                                  textAlign: TextAlign.left,
                                   decoration: InputDecoration(
-                                    hintText: 'e.g., 100', // left-aligned hint
-                                    suffixText:
-                                        '₱', // currency at the far right like "kg"
+                                    hintText: 'e.g., 100',
+                                    suffixText: '₱',
                                     suffixStyle: TextStyle(
                                       color: Colors.grey[700],
                                       fontWeight: FontWeight.w600,
@@ -243,10 +306,15 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                                       borderSide: BorderSide.none,
                                     ),
                                   ),
-                                  validator: (v) =>
-                                      (v == null || v.trim().isEmpty)
-                                      ? 'Enter price'
-                                      : null,
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'Enter price';
+                                    }
+                                    if (double.tryParse(v.trim()) == null) {
+                                      return 'Enter valid number';
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ],
                             ),
@@ -274,7 +342,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                             ),
                             const SizedBox(height: 12),
                             InkWell(
-                              onTap: _pickDate,
+                              onTap: _isSaving ? null : _pickDate,
                               child: Container(
                                 height: 48,
                                 padding: const EdgeInsets.symmetric(
@@ -301,7 +369,6 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                         ),
                       ),
 
-                      // keep some bottom padding so content doesn't hide behind the fixed Save button
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -309,14 +376,14 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
               ),
             ),
 
-            // Fixed Save button placed below scrollable content and above bottom nav
+            // Fixed Save button
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: SizedBox(
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _saveIngredient,
+                  onPressed: _isSaving ? null : _saveIngredient,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF469E9C),
                     foregroundColor: Colors.white,
@@ -326,10 +393,24 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'Save Ingredient',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                  child: _isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Save Ingredient',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ),
