@@ -114,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextSpan(
                           text: 'Kusina',
                           style: TextStyle(
-                            color: const Color(0xFF3FA59A),
+                            color: const Color(0xFF469E9C),
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
                           ),
@@ -214,7 +214,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6F8C86),
+                        backgroundColor: const Color(0xFF469E9C),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -254,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.pushNamed(context, '/signup');
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6F8C86),
+                        backgroundColor: const Color(0xFF469E9C),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

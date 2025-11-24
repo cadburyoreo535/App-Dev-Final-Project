@@ -14,6 +14,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _firstName;
   String? _lastName;
 
+  final List<String> _quotes = [
+    'Great change starts with small daily habits—every mindful choice reduces waste and builds a sustainable rhythm.',
+    'Progress, not perfection. Improvement compounds when you stay consistent even on ordinary days.',
+    'Use what you have. Protect what you need. Stewardship begins with attention to the overlooked items.',
+    'Consistency beats motivation; systems outlast moods. Build routines that defend freshness and value.',
+    'Your choices today shape tomorrow’s savings—financial, environmental, and personal clarity.',
+    'Do less wasting. Do more living. Free space, free mind, free intention for what matters.',
+    'Every saved item is a quiet victory against excess and neglect—celebrate the subtle wins.',
+    'Mindful actions create meaningful impact; reducing spoilage is a ripple that reaches far.',
+    'Better planning. Better outcomes. A five‑minute review prevents unnecessary loss later.',
+    'Value what you already own—gratitude grows when you track and tend your resources.',
+    'Small efforts add up over time; micro‑adjustments form durable stewardship habits.',
+    'Stay focused. Stay intentional. Clarity in inventory brings clarity in decisions.',
+    'A tidy inventory is a clear mind—order outside supports calm inside.',
+    'Gratitude grows when waste shrinks; honoring ingredients honors effort and origin.',
+    'Choose wisely. Steward well. Responsibility expressed through daily practice becomes identity.',
+  ];
+
+  String get _dailyQuote {
+    final now = DateTime.now();
+    return _quotes[now.day % _quotes.length];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -74,11 +97,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        title: Align(
+          alignment: Alignment.centerRight,
+          child: const Text(
+            'Profile',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          ),
         ),
-        centerTitle: true,
+        centerTitle: false,
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(
@@ -91,14 +117,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Center(
               child: Column(
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: const Color(0xFF6366F1).withOpacity(.15),
+                    backgroundColor: const Color(0xFFA0D4CF).withOpacity(0.15),
                     backgroundImage: photoUrl != null
                         ? NetworkImage(photoUrl)
                         : null,
@@ -106,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ? const Icon(
                             Icons.person,
                             size: 48,
-                            color: Color(0xFF6366F1),
+                            color: Color(0xFF469E9C),
                           )
                         : null,
                   ),
@@ -115,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     displayName,
                     style: const TextStyle(
                       fontSize: 22,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w900,
                     ),
                   ),
                   Text(
@@ -130,45 +156,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Account Settings',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            Container(
+              padding: const EdgeInsets.all(18),
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6F7FB),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.format_quote,
+                    color: Color(0xFF469E9C),
+                    size: 28,
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      _dailyQuote,
+                      textAlign: TextAlign.left,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        height: 1.35,
+                        color: Color(0xFF2D2D3D),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Logo between quote and logout
+            SizedBox(
+              height: 260, // increased from 120 to push logout button down
+              child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildInfoTile(
-                    'First Name',
-                    _firstName ?? fallback.split(' ').first,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(child: _buildInfoTile('Last Name', _lastName ?? '—')),
-              ],
-            ),
-            _buildInfoTile('UID', user.uid),
-            _buildSettingTile(Icons.lock_outline, 'Change Password'),
-            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
-              child: OutlinedButton.icon(
+              child: ElevatedButton.icon(
                 onPressed: () async {
                   await FirebaseAuth.instance.signOut();
                   if (mounted)
                     Navigator.pushReplacementNamed(context, '/login');
                 },
-                icon: const Icon(Icons.logout),
-                style: OutlinedButton.styleFrom(
+                icon: const Icon(Icons.logout, color: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF469E9C),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  side: const BorderSide(color: Color(0xFF6366F1)),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 0,
                 ),
                 label: const Text(
                   'Logout',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
@@ -176,69 +224,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
-    );
-  }
-
-  Widget _buildSettingTile(IconData icon, String title) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: ListTile(
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(.05),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: const Color(0xFF6366F1)),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Color(0xFF2D2D3D)),
-        onTap: () {},
-      ),
-    );
-  }
-
-  Widget _buildInfoTile(String label, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F7FB),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
     );
   }
 
