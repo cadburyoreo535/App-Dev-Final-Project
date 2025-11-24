@@ -54,6 +54,15 @@ class _SignupScreenState extends State<SignupScreen> {
           .timeout(const Duration(seconds: 20));
       debugPrint('signup: user created ${cred.user?.uid}');
 
+      final first = _firstController.text.trim();
+      final last = _lastController.text.trim();
+      try {
+        await cred.user!.updateDisplayName('$first $last');
+        debugPrint('signup: displayName set');
+      } catch (e) {
+        debugPrint('signup: failed to set displayName $e');
+      }
+
       // Try to write the user doc but don't block navigation on failure.
       try {
         debugPrint('signup: writing user doc');
@@ -61,8 +70,8 @@ class _SignupScreenState extends State<SignupScreen> {
             .collection('users')
             .doc(cred.user!.uid)
             .set({
-              'firstName': _firstController.text.trim(),
-              'lastName': _lastController.text.trim(),
+              'firstName': first,
+              'lastName': last,
               'email': _emailController.text.trim(),
               'createdAt': FieldValue.serverTimestamp(),
             })

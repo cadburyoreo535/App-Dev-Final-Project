@@ -512,7 +512,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
               if (index == 1) Navigator.pushNamed(context, '/inventory');
               if (index == 2) Navigator.pushNamed(context, '/recipes');
               if (index == 3) Navigator.pushNamed(context, '/spoilage');
-              if (index == 4) Navigator.pushNamed(context, '/procurement');
+              if (index == 4) Navigator.pushNamed(context, '/profile');
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
@@ -543,9 +543,9 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                 label: 'Spoilage',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.local_grocery_store_outlined),
-                activeIcon: Icon(Icons.local_grocery_store),
-                label: 'Procurement',
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
               ),
             ],
           ),
