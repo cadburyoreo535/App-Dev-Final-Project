@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/food_item.dart';
-import 'add_new_item.dart'; // <--- added import
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'add_new_item.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -12,23 +13,14 @@ class InventoryScreen extends StatefulWidget {
 class _InventoryScreenState extends State<InventoryScreen> {
   int _selectedIndex = 1;
   final TextEditingController _searchController = TextEditingController();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final List<FoodItem> _inventoryItems = [
-    FoodItem(
-      name: 'Tomatoes',
-      weight: 2,
-      expiryDate: DateTime(2024, 7, 28),
-      isExpiringSoon: true,
-    ),
-    FoodItem(
-      name: 'Chicken Breast',
-      weight: 0.5,
-      expiryDate: DateTime(2024, 7, 25),
-      isSpoiled: true,
-    ),
-    FoodItem(name: 'Milk', weight: 1, expiryDate: DateTime(2024, 8, 5)),
-    FoodItem(name: 'Eggs', weight: 0.6, expiryDate: DateTime(2024, 8, 10)),
-  ];
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,26 +58,85 @@ class _InventoryScreenState extends State<InventoryScreen> {
         children: [
           _buildSearchBar(),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _inventoryItems.length,
-              itemBuilder: (context, index) {
-                return _buildInventoryCard(_inventoryItems[index]);
+            child: StreamBuilder<QuerySnapshot>(
+              stream: _firestore
+                  .collection('ingredients')
+                  .where('userId', isEqualTo: _auth.currentUser?.uid)
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 64,
+                          color: Colors.grey[400],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No ingredients yet',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Add your first ingredient using the + button',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final ingredients = snapshot.data!.docs;
+
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: ingredients.length,
+                  itemBuilder: (context, index) {
+                    final doc = ingredients[index];
+                    final data = doc.data() as Map<String, dynamic>;
+                    return _buildInventoryCard(
+                      id: doc.id,
+                      name: data['name'] ?? '',
+                      category: data['category'] ?? '',
+                      quantity: (data['quantity'] ?? 0).toDouble(),
+                      price: (data['price'] ?? 0).toDouble(),
+                      expirationDate:
+                          (data['expirationDate'] as Timestamp?)?.toDate() ??
+                          DateTime.now(),
+                    );
+                  },
+                );
               },
             ),
           ),
         ],
       ),
       bottomNavigationBar: _buildBottomNavBar(),
-
-      // Added floating action button at bottom-right
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // push the AddNewItemScreen
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AddNewItemScreen()),
           );
+          // Rebuild triggered automatically by StreamBuilder
         },
         backgroundColor: const Color(0xFF469E9C),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
@@ -110,7 +161,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             child: TextField(
               controller: _searchController,
               decoration: const InputDecoration(
-                hintText: 'Tomatoes',
+                hintText: 'Search ingredients...',
                 border: InputBorder.none,
                 hintStyle: TextStyle(color: Colors.grey),
               ),
@@ -125,17 +176,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  Widget _buildInventoryCard(FoodItem item) {
+  Widget _buildInventoryCard({
+    required String id,
+    required String name,
+    required String category,
+    required double quantity,
+    required double price,
+    required DateTime expirationDate,
+  }) {
+    final now = DateTime.now();
+    final daysUntilExpiry = expirationDate.difference(now).inDays;
+
     Color cardColor;
     String statusText;
     Color statusColor;
-    IconData itemIcon;
 
-    if (item.isSpoiled) {
+    if (daysUntilExpiry < 0) {
       cardColor = const Color(0xFFFFE5E5);
       statusText = 'Spoiled';
       statusColor = Colors.red;
-    } else if (item.isExpiringSoon) {
+    } else if (daysUntilExpiry <= 3) {
       cardColor = const Color(0xFFFFF9E6);
       statusText = 'Expiring Soon';
       statusColor = const Color(0xFFFFC107);
@@ -145,27 +205,25 @@ class _InventoryScreenState extends State<InventoryScreen> {
       statusColor = Colors.green;
     }
 
-    // Determine icon based on item name
-    if (item.name.toLowerCase().contains('tomato')) {
-      itemIcon = Icons.local_florist;
-    } else if (item.name.toLowerCase().contains('chicken')) {
-      itemIcon = Icons.restaurant;
-    } else if (item.name.toLowerCase().contains('milk')) {
-      itemIcon = Icons.local_drink;
-    } else if (item.name.toLowerCase().contains('egg')) {
-      itemIcon = Icons.egg;
-    } else {
-      itemIcon = Icons.fastfood;
-    }
-
-    String category = '';
-    if (item.name.toLowerCase().contains('tomato')) {
-      category = 'Vegetables';
-    } else if (item.name.toLowerCase().contains('chicken')) {
-      category = 'Meat';
-    } else if (item.name.toLowerCase().contains('milk') ||
-        item.name.toLowerCase().contains('egg')) {
-      category = 'Dairy';
+    IconData itemIcon;
+    switch (category.toLowerCase()) {
+      case 'vegetables':
+        itemIcon = Icons.local_florist;
+        break;
+      case 'meat':
+        itemIcon = Icons.restaurant;
+        break;
+      case 'dairy':
+        itemIcon = Icons.local_drink;
+        break;
+      case 'fruits':
+        itemIcon = Icons.apple;
+        break;
+      case 'grains':
+        itemIcon = Icons.grain;
+        break;
+      default:
+        itemIcon = Icons.fastfood;
     }
 
     return Container(
@@ -192,7 +250,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  name,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -205,9 +263,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item.weight < 1
-                      ? '${(item.weight * 1000).toInt()} g'
-                      : '${item.weight.toInt()} ${item.weight < 2 ? 'Liter' : 'kg'}',
+                  '${quantity.toStringAsFixed(1)} kg • ₱${price.toStringAsFixed(2)}',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -222,7 +278,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),
-                onPressed: () {},
+                onPressed: () {
+                  // TODO: Implement edit functionality
+                },
                 color: Colors.grey[700],
               ),
               const SizedBox(height: 4),
@@ -246,7 +304,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Expires: ${item.expiryDate.year}-${item.expiryDate.month.toString().padLeft(2, '0')}-${item.expiryDate.day.toString().padLeft(2, '0')}',
+                'Expires: ${expirationDate.year}-${expirationDate.month.toString().padLeft(2, '0')}-${expirationDate.day.toString().padLeft(2, '0')}',
                 style: TextStyle(fontSize: 11, color: Colors.grey[700]),
               ),
             ],
@@ -271,7 +329,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // subtle line under title / above the nav bar
           const Divider(
             height: 1,
             thickness: 1,
