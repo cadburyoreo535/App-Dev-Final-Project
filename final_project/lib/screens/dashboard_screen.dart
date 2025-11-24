@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/food_item.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -10,31 +11,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
-
-  final List<FoodItem> _foodItems = [
-    FoodItem(
-      name: 'Potatoes',
-      weight: 5,
-      expiryDate: DateTime(2023, 11, 20),
-      isExpiringSoon: true,
-    ),
-    FoodItem(
-      name: 'Onions',
-      weight: 2,
-      expiryDate: DateTime(2023, 11, 22),
-      isExpiringSoon: true,
-    ),
-    FoodItem(
-      name: 'Tomatoes',
-      weight: 1,
-      expiryDate: DateTime(2023, 11, 18),
-      isExpiringSoon: true,
-    ),
-  ];
-
-  int get _expiringSoonCount =>
-      _foodItems.where((item) => item.isExpiringSoon).length;
-  int get _spoiledCount => _foodItems.where((item) => item.isSpoiled).length;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
         ),
         title: const Align(
-          alignment: Alignment.centerRight, // 👈 Pushes to the right edge
+          alignment: Alignment.centerRight,
           child: Text(
             'Dashboard',
             style: TextStyle(
@@ -59,8 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         centerTitle: false,
-        actions: const [], // no spacer — allows text to reach the edge
-        // <-- add divider directly under app bar/title
+        actions: const [],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(
@@ -70,21 +47,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSpoilageStatusCard(),
-            const SizedBox(height: 20),
-            _buildCriticalAlertsSection(),
-          ],
-        ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('ingredients')
+            .where('userId', isEqualTo: _auth.currentUser?.uid)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final ingredients = snapshot.data?.docs ?? [];
+          final now = DateTime.now();
+
+          // Calculate counts
+          int expiringSoonCount = 0;
+          int spoiledCount = 0;
+          List<Map<String, dynamic>> criticalItems = [];
+
+          for (var doc in ingredients) {
+            final data = doc.data() as Map<String, dynamic>;
+            final expirationDate = (data['expirationDate'] as Timestamp?)
+                ?.toDate();
+
+            if (expirationDate != null) {
+              final daysUntilExpiry = expirationDate.difference(now).inDays;
+
+              if (daysUntilExpiry < 0) {
+                spoiledCount++;
+                criticalItems.add({
+                  'id': doc.id,
+                  'name': data['name'] ?? '',
+                  'quantity': (data['quantity'] ?? 0).toDouble(),
+                  'expirationDate': expirationDate,
+                  'status': 'spoiled',
+                  'daysUntilExpiry': daysUntilExpiry,
+                });
+              } else if (daysUntilExpiry <= 3) {
+                expiringSoonCount++;
+                criticalItems.add({
+                  'id': doc.id,
+                  'name': data['name'] ?? '',
+                  'quantity': (data['quantity'] ?? 0).toDouble(),
+                  'expirationDate': expirationDate,
+                  'status': 'expiring_soon',
+                  'daysUntilExpiry': daysUntilExpiry,
+                });
+              }
+            }
+          }
+
+          // Sort critical items by expiry date (most urgent first)
+          criticalItems.sort(
+            (a, b) => a['daysUntilExpiry'].compareTo(b['daysUntilExpiry']),
+          );
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSpoilageStatusCard(
+                  totalItems: ingredients.length,
+                  expiringSoonCount: expiringSoonCount,
+                  spoiledCount: spoiledCount,
+                ),
+                const SizedBox(height: 20),
+                _buildCriticalAlertsSection(criticalItems),
+              ],
+            ),
+          );
+        },
       ),
       bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
-  Widget _buildSpoilageStatusCard() {
+  Widget _buildSpoilageStatusCard({
+    required int totalItems,
+    required int expiringSoonCount,
+    required int spoiledCount,
+  }) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -111,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '${_foodItems.length} Items',
+            '$totalItems Items',
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
@@ -124,7 +170,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Icon(Icons.access_time, color: Colors.orange, size: 18),
               const SizedBox(width: 6),
               Text(
-                'Expiring Soon: $_expiringSoonCount',
+                'Expiring Soon: $expiringSoonCount',
                 style: const TextStyle(
                   color: Colors.orange,
                   fontSize: 14,
@@ -135,7 +181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Icon(Icons.error_outline, color: Colors.red, size: 18),
               const SizedBox(width: 6),
               Text(
-                'Spoiled: $_spoiledCount',
+                'Spoiled: $spoiledCount',
                 style: const TextStyle(
                   color: Colors.red,
                   fontSize: 14,
@@ -154,23 +200,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              FractionallySizedBox(
-                widthFactor: _expiringSoonCount / _foodItems.length,
-                child: Container(
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(4),
+              if (totalItems > 0)
+                FractionallySizedBox(
+                  widthFactor: expiringSoonCount / totalItems,
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, '/spoilage');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF469E9C),
                 foregroundColor: Colors.white,
@@ -191,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildCriticalAlertsSection() {
+  Widget _buildCriticalAlertsSection(List<Map<String, dynamic>> criticalItems) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -206,18 +255,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ..._foodItems.map((item) => _buildFoodItemCard(item)),
+          if (criticalItems.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 48,
+                      color: Colors.green[400],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No critical alerts!',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...criticalItems.map((item) => _buildFoodItemCard(item)),
         ],
       ),
     );
   }
 
-  Widget _buildFoodItemCard(FoodItem item) {
+  Widget _buildFoodItemCard(Map<String, dynamic> item) {
+    final status = item['status'];
+    final isSpoiled = status == 'spoiled';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF9E6),
+        color: isSpoiled ? const Color(0xFFFFE5E5) : const Color(0xFFFFF9E6),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -225,14 +298,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.access_time, color: Colors.orange[700], size: 24),
+              Icon(
+                isSpoiled ? Icons.error_outline : Icons.access_time,
+                color: isSpoiled ? Colors.red[700] : Colors.orange[700],
+                size: 24,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item.name,
+                      item['name'],
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -240,7 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      '${item.weight} kg',
+                      '${item['quantity'].toStringAsFixed(1)} kg',
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],
@@ -252,13 +329,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107),
+                  color: isSpoiled ? Colors.red : const Color(0xFFFFC107),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  'Expiring Soon',
+                child: Text(
+                  isSpoiled ? 'Spoiled' : 'Expiring Soon',
                   style: TextStyle(
-                    color: Colors.black87,
+                    color: isSpoiled ? Colors.white : Colors.black87,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -272,21 +349,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Icon(Icons.calendar_today, size: 14, color: Colors.grey[600]),
               const SizedBox(width: 6),
               Text(
-                'Expires: ${item.expiryDate.year}-${item.expiryDate.month.toString().padLeft(2, '0')}-${item.expiryDate.day.toString().padLeft(2, '0')}',
+                'Expires: ${item['expirationDate'].year}-${item['expirationDate'].month.toString().padLeft(2, '0')}-${item['expirationDate'].day.toString().padLeft(2, '0')}',
                 style: TextStyle(fontSize: 13, color: Colors.grey[700]),
               ),
             ],
           ),
           const SizedBox(height: 12),
           TextButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.pushNamed(context, '/inventory');
+            },
             style: TextButton.styleFrom(
               padding: EdgeInsets.zero,
               minimumSize: const Size(0, 0),
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
             child: const Text(
-              'Update Status',
+              'View in Inventory',
               style: TextStyle(
                 color: Color(0xFF2D2D3D),
                 fontWeight: FontWeight.w600,
@@ -314,7 +393,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // subtle line under title / above the nav bar
           const Divider(
             height: 1,
             thickness: 1,
