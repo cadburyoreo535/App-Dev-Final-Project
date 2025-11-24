@@ -35,7 +35,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _expirationDate ?? now,
-      firstDate: now,
+      firstDate: DateTime(now.year - 10),
       lastDate: DateTime(now.year + 10),
     );
     if (picked != null) setState(() => _expirationDate = picked);
