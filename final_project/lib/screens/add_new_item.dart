@@ -17,6 +17,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
   final TextEditingController _priceController = TextEditingController();
   DateTime? _expirationDate;
   String _category = 'Vegetables';
+  String _unit = 'kg'; // Added unit field
   bool _isSaving = false;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -64,6 +65,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
         'name': _nameController.text.trim(),
         'category': _category,
         'quantity': double.parse(_quantityController.text.trim()),
+        'unit': _unit, // Save the selected unit
         'price': double.parse(_priceController.text.trim()),
         'expirationDate': Timestamp.fromDate(_expirationDate!),
         'userId': user.uid,
@@ -238,7 +240,7 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Inventory & Pricing',
+                              'Unit & Pricing',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -248,36 +250,94 @@ class _AddNewItemScreenState extends State<AddNewItemScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                TextFormField(
-                                  controller: _quantityController,
-                                  enabled: !_isSaving,
-                                  keyboardType:
-                                      const TextInputType.numberWithOptions(
-                                        decimal: true,
+                                // Quantity field with unit dropdown
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: TextFormField(
+                                        controller: _quantityController,
+                                        enabled: !_isSaving,
+                                        keyboardType:
+                                            const TextInputType.numberWithOptions(
+                                              decimal: true,
+                                            ),
+                                        decoration: InputDecoration(
+                                          hintText: 'e.g., 5',
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                        validator: (v) {
+                                          if (v == null || v.trim().isEmpty) {
+                                            return 'Enter quantity';
+                                          }
+                                          if (double.tryParse(v.trim()) ==
+                                              null) {
+                                            return 'Enter valid number';
+                                          }
+                                          return null;
+                                        },
                                       ),
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g., 5',
-                                    suffixText: 'kg',
-                                    filled: true,
-                                    fillColor: Colors.white,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 12,
                                     ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                      borderSide: BorderSide.none,
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 1,
+                                      child: DropdownButtonFormField<String>(
+                                        value: _unit,
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: 'g',
+                                            child: Text('g'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'kg',
+                                            child: Text('kg'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'pc',
+                                            child: Text('pc'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'L',
+                                            child: Text('L'),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'mL',
+                                            child: Text('mL'),
+                                          ),
+                                        ],
+                                        onChanged: _isSaving
+                                            ? null
+                                            : (v) => setState(() => _unit = v!),
+                                        decoration: InputDecoration(
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 12,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            borderSide: BorderSide.none,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return 'Enter quantity';
-                                    }
-                                    if (double.tryParse(v.trim()) == null) {
-                                      return 'Enter valid number';
-                                    }
-                                    return null;
-                                  },
+                                  ],
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
