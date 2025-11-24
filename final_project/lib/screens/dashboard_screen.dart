@@ -110,6 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildWelcomeHeader(),
                 _buildSpoilageStatusCard(
                   totalItems: ingredients.length,
                   expiringSoonCount: expiringSoonCount,
@@ -123,6 +124,65 @@ class _DashboardScreenState extends State<DashboardScreen> {
         },
       ),
       bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildWelcomeHeader() {
+    return FutureBuilder<DocumentSnapshot>(
+      future: _firestore.collection('users').doc(_auth.currentUser?.uid).get(),
+      builder: (context, snapshot) {
+        String firstName = 'User';
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data() as Map<String, dynamic>?;
+          firstName = data?['firstName'] ?? 'User';
+        }
+
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hi, $firstName',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: Color(0xFF2D2D3D),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Welcome back!',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: const Color(0xFFA0D4CF).withOpacity(0.35),
+                child: Text(
+                  firstName.isNotEmpty ? firstName[0].toUpperCase() : 'U',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF469E9C),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
