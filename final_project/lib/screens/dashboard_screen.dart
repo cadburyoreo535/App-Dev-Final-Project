@@ -83,6 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   'id': doc.id,
                   'name': data['name'] ?? '',
                   'quantity': (data['quantity'] ?? 0).toDouble(),
+                  'unit': data['unit'] ?? 'kg', // Added unit field
                   'expirationDate': expirationDate,
                   'status': 'spoiled',
                   'daysUntilExpiry': daysUntilExpiry,
@@ -93,6 +94,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   'id': doc.id,
                   'name': data['name'] ?? '',
                   'quantity': (data['quantity'] ?? 0).toDouble(),
+                  'unit': data['unit'] ?? 'kg', // Added unit field
                   'expirationDate': expirationDate,
                   'status': 'expiring_soon',
                   'daysUntilExpiry': daysUntilExpiry,
@@ -377,7 +379,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      '${item['quantity'].toStringAsFixed(1)} kg',
+                      '${item['quantity'].toStringAsFixed(1)} ${item['unit']}', // Changed to use dynamic unit
                       style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ],

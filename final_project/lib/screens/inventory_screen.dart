@@ -117,6 +117,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       name: data['name'] ?? '',
                       category: data['category'] ?? '',
                       quantity: (data['quantity'] ?? 0).toDouble(),
+                      unit: data['unit'] ?? 'kg', // Added unit parameter
                       price: (data['price'] ?? 0).toDouble(),
                       expirationDate:
                           (data['expirationDate'] as Timestamp?)?.toDate() ??
@@ -181,6 +182,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     required String name,
     required String category,
     required double quantity,
+    required String unit, // Added unit parameter
     required double price,
     required DateTime expirationDate,
   }) {
@@ -263,7 +265,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${quantity.toStringAsFixed(1)} kg • ₱${price.toStringAsFixed(2)}',
+                  '${quantity.toStringAsFixed(1)} $unit • ₱${price.toStringAsFixed(2)}', // Changed to use dynamic unit
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
