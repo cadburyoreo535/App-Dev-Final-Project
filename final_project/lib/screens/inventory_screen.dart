@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'add_new_item.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -20,6 +19,412 @@ class _InventoryScreenState extends State<InventoryScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _showAddItemDialog() {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final quantityController = TextEditingController();
+    final priceController = TextEditingController();
+    String selectedCategory = 'Vegetables';
+    String selectedUnit = 'kg';
+    DateTime? selectedDate;
+    bool isSaving = false;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Add New Ingredient',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 20),
+              ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Ingredient Details Section
+                      const Text(
+                        'Ingredient Details',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D2D3D),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Name field
+                      TextFormField(
+                        controller: nameController,
+                        enabled: !isSaving,
+                        decoration: InputDecoration(
+                          hintText: 'e.g., Fresh Tomatoes',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F3FF),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? 'Enter name'
+                            : null,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Category dropdown
+                      DropdownButtonFormField<String>(
+                        value: selectedCategory,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'Vegetables',
+                            child: Text('Vegetables'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Dairy',
+                            child: Text('Dairy'),
+                          ),
+                          DropdownMenuItem(value: 'Meat', child: Text('Meat')),
+                          DropdownMenuItem(
+                            value: 'Grains',
+                            child: Text('Grains'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Fruits',
+                            child: Text('Fruits'),
+                          ),
+                        ],
+                        onChanged: isSaving
+                            ? null
+                            : (v) =>
+                                  setDialogState(() => selectedCategory = v!),
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFFF5F3FF),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Unit & Pricing Section
+                      const Text(
+                        'Unit & Pricing',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D2D3D),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Quantity with unit
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: quantityController,
+                              enabled: !isSaving,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                hintText: 'e.g., 5',
+                                filled: true,
+                                fillColor: const Color(0xFFF5F3FF),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Enter quantity';
+                                }
+                                if (double.tryParse(v.trim()) == null) {
+                                  return 'Enter valid number';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 1,
+                            child: DropdownButtonFormField<String>(
+                              value: selectedUnit,
+                              items: const [
+                                DropdownMenuItem(value: 'g', child: Text('g')),
+                                DropdownMenuItem(
+                                  value: 'kg',
+                                  child: Text('kg'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'pc',
+                                  child: Text('pc'),
+                                ),
+                                DropdownMenuItem(value: 'L', child: Text('L')),
+                                DropdownMenuItem(
+                                  value: 'mL',
+                                  child: Text('mL'),
+                                ),
+                              ],
+                              onChanged: isSaving
+                                  ? null
+                                  : (v) =>
+                                        setDialogState(() => selectedUnit = v!),
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: const Color(0xFFF5F3FF),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Price field
+                      TextFormField(
+                        controller: priceController,
+                        enabled: !isSaving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'e.g., 100',
+                          suffixText: '₱',
+                          filled: true,
+                          fillColor: const Color(0xFFF5F3FF),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter price';
+                          }
+                          if (double.tryParse(v.trim()) == null) {
+                            return 'Enter valid number';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Expiration Date
+                      const Text(
+                        'Expiration Date',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2D2D3D),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      InkWell(
+                        onTap: isSaving
+                            ? null
+                            : () async {
+                                final now = DateTime.now();
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: selectedDate ?? now,
+                                  firstDate: DateTime(now.year - 10),
+                                  lastDate: DateTime(now.year + 10),
+                                );
+                                if (picked != null) {
+                                  setDialogState(() => selectedDate = picked);
+                                }
+                              },
+                        child: Container(
+                          height: 48,
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          alignment: Alignment.centerLeft,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F3FF),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                selectedDate == null
+                                    ? 'Select date'
+                                    : '${selectedDate?.year}-${selectedDate?.month.toString().padLeft(2, '0')}-${selectedDate?.day.toString().padLeft(2, '0')}',
+                                style: TextStyle(
+                                  color: selectedDate == null
+                                      ? Colors.grey
+                                      : Colors.black87,
+                                ),
+                              ),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSaving
+                      ? null
+                      : () {
+                          nameController.dispose();
+                          quantityController.dispose();
+                          priceController.dispose();
+                          Navigator.of(context).pop();
+                        },
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (!formKey.currentState!.validate()) return;
+
+                          if (selectedDate == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Please select an expiration date',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          setDialogState(() => isSaving = true);
+
+                          try {
+                            final user = _auth.currentUser;
+                            if (user == null) {
+                              throw Exception('User not logged in');
+                            }
+
+                            await _firestore.collection('ingredients').add({
+                              'name': nameController.text.trim(),
+                              'category': selectedCategory,
+                              'quantity': double.parse(
+                                quantityController.text.trim(),
+                              ),
+                              'unit': selectedUnit,
+                              'price': double.parse(
+                                priceController.text.trim(),
+                              ),
+                              'expirationDate': Timestamp.fromDate(
+                                selectedDate!,
+                              ),
+                              'userId': user.uid,
+                              'createdAt': FieldValue.serverTimestamp(),
+                            });
+
+                            nameController.dispose();
+                            quantityController.dispose();
+                            priceController.dispose();
+
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Ingredient added successfully!',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            setDialogState(() => isSaving = false);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error adding ingredient: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF469E9C),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        )
+                      : const Text(
+                          'Add',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -117,7 +522,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       name: data['name'] ?? '',
                       category: data['category'] ?? '',
                       quantity: (data['quantity'] ?? 0).toDouble(),
-                      unit: data['unit'] ?? 'kg', // Added unit parameter
+                      unit: data['unit'] ?? 'kg',
                       price: (data['price'] ?? 0).toDouble(),
                       expirationDate:
                           (data['expirationDate'] as Timestamp?)?.toDate() ??
@@ -132,13 +537,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       ),
       bottomNavigationBar: _buildBottomNavBar(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AddNewItemScreen()),
-          );
-          // Rebuild triggered automatically by StreamBuilder
-        },
+        onPressed: _showAddItemDialog, // Changed to show dialog
         backgroundColor: const Color(0xFF469E9C),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
@@ -418,7 +817,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final priceController = TextEditingController(text: price.toString());
     String selectedCategory = category;
     String selectedUnit = unit;
-    DateTime selectedDate = expirationDate;
+    DateTime selectedDate = expirationDate; // This is non-nullable
     bool isSaving = false;
 
     showDialog(
