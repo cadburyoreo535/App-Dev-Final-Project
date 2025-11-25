@@ -79,8 +79,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
                 final category = data['category'] ?? 'Other';
                 final totalPrice = (data['price'] ?? 0).toDouble();
                 final quantity = (data['quantity'] ?? 0).toDouble();
-                final itemCost =
-                    totalPrice; // Price is already the total, no multiplication needed
+                final itemCost = totalPrice;
 
                 spoiledItems.add({
                   'id': doc.id,
@@ -127,7 +126,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
                   totalSpoiled,
                   totalCost,
                   spoilageRate,
-                  spoiledItems, // Pass spoiledItems
+                  spoiledItems,
                 ),
                 const SizedBox(height: 20),
                 _buildHighCostContributorsSection(spoiledItems),
@@ -281,7 +280,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
     int totalSpoiled,
     double totalCost,
     double spoilageRate,
-    List<Map<String, dynamic>> spoiledItems, // Added parameter
+    List<Map<String, dynamic>> spoiledItems,
   ) {
     // Get the most recent spoilage date
     String lastSpoilageText = 'N/A';
@@ -289,7 +288,7 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
       final mostRecentExpiry = spoiledItems.first['expirationDate'] as DateTime;
       final now = DateTime.now();
       final daysAgo = now.difference(mostRecentExpiry).inDays;
-      
+
       if (daysAgo == 0) {
         lastSpoilageText = 'Today';
       } else if (daysAgo == 1) {
@@ -535,7 +534,8 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
                     ],
                   ),
                 ],
-              ));
+              ),
+            );
           }),
         ],
       ),
@@ -562,13 +562,18 @@ class _SpoilageScreenState extends State<SpoilageScreen> {
       );
     }
 
-    // Define colors for each category
+    // Define colors for each category (updated with new categories)
     final Map<String, Color> categoryColors = {
-      'Vegetables': Colors.red.shade300,
-      'Dairy': Colors.yellow.shade600,
-      'Meat': Colors.red.shade700,
-      'Grains': Colors.blue.shade300,
-      'Fruits': Colors.purple.shade300,
+      'Vegetables': Colors.green.shade400,
+      'Dairy': Colors.blue.shade300,
+      'Meat': Colors.red.shade400,
+      'Grains': Colors.amber.shade400,
+      'Fruits': Colors.orange.shade400,
+      'Seafood': Colors.cyan.shade400,
+      'Poultry': Colors.brown.shade300,
+      'Pantry Items': Colors.grey.shade400,
+      'Spices & Seasonings': Colors.deepOrange.shade300,
+      'Beverages': Colors.purple.shade300,
       'Other': Colors.grey.shade400,
     };
 
