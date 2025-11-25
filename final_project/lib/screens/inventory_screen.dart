@@ -106,6 +106,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             value: 'Fruits',
                             child: Text('Fruits'),
                           ),
+                          DropdownMenuItem(
+                            value: 'Seafood',
+                            child: Text('Seafood'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Poultry',
+                            child: Text('Poultry'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Pantry Items',
+                            child: Text('Pantry Items'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Spices & Seasonings',
+                            child: Text('Spices & Seasonings'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Beverages',
+                            child: Text('Beverages'),
+                          ),
                         ],
                         onChanged: isSaving
                             ? null
@@ -901,6 +921,26 @@ class _InventoryScreenState extends State<InventoryScreen> {
                           DropdownMenuItem(
                             value: 'Fruits',
                             child: Text('Fruits'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Seafood',
+                            child: Text('Seafood'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Poultry',
+                            child: Text('Poultry'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Pantry Items',
+                            child: Text('Pantry Items'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Spices & Seasonings',
+                            child: Text('Spices & Seasonings'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Beverages',
+                            child: Text('Beverages'),
                           ),
                         ],
                         onChanged: isSaving
