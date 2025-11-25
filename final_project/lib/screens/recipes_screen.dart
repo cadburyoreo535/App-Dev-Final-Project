@@ -15,7 +15,8 @@ class _RecipesScreenState extends State<RecipesScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  final Set<String> _selected = {};
+  final Set<String> _selected =
+      {}; // Changed from Set<String> to Set<String> for IDs
   String _selectedCategory = 'All';
   List<Map<String, dynamic>> _availableIngredients = [];
   bool _isInitialized = false; // Add this flag
@@ -280,12 +281,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
           else
             Column(
               children: filteredIngredients.map((ing) {
+                final id = ing['id']; // Use ID instead of name
                 final name = ing['name'];
                 final quantity = ing['quantity'];
                 final unit = ing['unit'];
                 final status = ing['status'];
                 final daysUntilExpiry = ing['daysUntilExpiry'];
-                final selected = _selected.contains(name);
+                final selected = _selected.contains(id); // Check by ID
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -311,9 +313,9 @@ class _RecipesScreenState extends State<RecipesScreen> {
                         onChanged: (v) {
                           setState(() {
                             if (v == true) {
-                              _selected.add(name);
+                              _selected.add(id); // Add ID instead of name
                             } else {
-                              _selected.remove(name);
+                              _selected.remove(id); // Remove by ID
                             }
                           });
                         },
@@ -484,7 +486,12 @@ class _RecipesScreenState extends State<RecipesScreen> {
   }
 
   void _generateRecipes() {
-    // placeholder: implement recipe generation
+    // Get selected ingredient names for display
+    final selectedIngredients = _availableIngredients
+        .where((ing) => _selected.contains(ing['id']))
+        .map((ing) => ing['name'] as String)
+        .toList();
+
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -499,7 +506,7 @@ class _RecipesScreenState extends State<RecipesScreen> {
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            Text(_selected.join(', ')),
+            Text(selectedIngredients.join(', ')),
           ],
         ),
         actions: [
