@@ -20,15 +20,98 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   final Set<String> _selected = {};
   String _selectedCategory = 'All';
+  String _selectedDifficulty = 'All'; // Add this
   List<Map<String, dynamic>> _availableIngredients = [];
   bool _isInitialized = false;
   bool _isGenerating = false;
   List<Map<String, dynamic>> _generatedRecipes = [];
+  List<Map<String, dynamic>> _savedRecipes = []; // Add this
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedRecipes(); // Add this
+  }
+
+  // Load saved recipes from Firestore
+  void _loadSavedRecipes() {
+    _firestore
+        .collection('savedRecipes')
+        .where('userId', isEqualTo: _auth.currentUser?.uid)
+        .orderBy('savedAt', descending: true)
+        .snapshots()
+        .listen((snapshot) {
+          setState(() {
+            _savedRecipes = snapshot.docs
+                .map((doc) => {'id': doc.id, ...doc.data()})
+                .toList();
+          });
+        });
+  }
+
+  // Save recipe to Firestore
+  Future<void> _saveRecipe(Map<String, dynamic> recipe) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) throw Exception('User not logged in');
+
+      await _firestore.collection('savedRecipes').add({
+        ...recipe,
+        'userId': user.uid,
+        'savedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${recipe['name']} saved successfully!'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving recipe: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Delete saved recipe
+  Future<void> _deleteSavedRecipe(String recipeId) async {
+    try {
+      await _firestore.collection('savedRecipes').doc(recipeId).delete();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Recipe deleted successfully!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting recipe: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   bool _ingredientsChanged(List<Map<String, dynamic>> newIngredients) {
@@ -71,9 +154,14 @@ class _RecipesScreenState extends State<RecipesScreen> {
           )
           .join('\n');
 
+      // Update prompt based on difficulty filter
+      final difficultyFilter = _selectedDifficulty == 'All'
+          ? ''
+          : '\n- Focus on $_selectedDifficulty difficulty recipes';
+
       final prompt =
           '''
-You are a professional chef assistant. Generate 3 creative and practical recipes using the following ingredients from the user's inventory. Prioritize using ingredients that are expiring soon.
+You are a professional chef assistant. Generate 3 creative and practical recipes using the following ingredients from the user's inventory. Prioritize using ingredients that are expiring soon.$difficultyFilter
 
 Available Ingredients:
 $ingredientList
@@ -202,7 +290,7 @@ IMPORTANT:
                   itemCount: _generatedRecipes.length,
                   itemBuilder: (context, index) {
                     final recipe = _generatedRecipes[index];
-                    return _buildRecipeCard(recipe, index);
+                    return _buildRecipeCard(recipe, index, isGenerated: true);
                   },
                 ),
               ),
@@ -213,7 +301,70 @@ IMPORTANT:
     );
   }
 
-  Widget _buildRecipeCard(Map<String, dynamic> recipe, int index) {
+  void _showSavedRecipeDialog(Map<String, dynamic> recipe) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: const BoxConstraints(maxHeight: 600, maxWidth: 500),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF469E9C),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.bookmark, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        recipe['name'] ?? 'Recipe',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: _buildRecipeCard(recipe, 0, isGenerated: false),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecipeCard(
+    Map<String, dynamic> recipe,
+    int index, {
+    required bool isGenerated,
+  }) {
+    // Check if recipe is already saved
+    final isSaved = _savedRecipes.any(
+      (saved) =>
+          saved['name'] == recipe['name'] &&
+          saved['description'] == recipe['description'],
+    );
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -231,9 +382,32 @@ IMPORTANT:
             ),
           ),
         ),
-        title: Text(
-          recipe['name'] ?? 'Untitled Recipe',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                recipe['name'] ?? 'Untitled Recipe',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (isGenerated)
+              IconButton(
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                  color: isSaved ? const Color(0xFF469E9C) : Colors.grey[600],
+                ),
+                onPressed: isSaved
+                    ? null
+                    : () {
+                        _saveRecipe(recipe);
+                        Navigator.pop(context); // Close dialog after saving
+                      },
+                tooltip: isSaved ? 'Already saved' : 'Save recipe',
+              ),
+          ],
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +427,7 @@ IMPORTANT:
                     recipe['difficulty'] ?? 'Medium',
                     style: const TextStyle(fontSize: 11),
                   ),
-                  backgroundColor: Colors.orange.shade100,
+                  backgroundColor: _getDifficultyColor(recipe['difficulty']),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -369,6 +543,19 @@ IMPORTANT:
         ],
       ),
     );
+  }
+
+  Color _getDifficultyColor(String? difficulty) {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy':
+        return Colors.green.shade100;
+      case 'medium':
+        return Colors.orange.shade100;
+      case 'hard':
+        return Colors.red.shade100;
+      default:
+        return Colors.grey.shade100;
+    }
   }
 
   @override
@@ -493,9 +680,9 @@ IMPORTANT:
           const SizedBox(height: 12),
           _buildSelectIngredientsCard(_availableIngredients),
           const SizedBox(height: 12),
-          _buildNoRecipesCard(),
+          if (_savedRecipes.isEmpty) _buildNoRecipesCard(),
           const SizedBox(height: 16),
-          _buildSavedRecipesSection(),
+          if (_savedRecipes.isNotEmpty) _buildSavedRecipesSection(),
           const SizedBox(height: 80),
         ],
       ),
@@ -505,14 +692,12 @@ IMPORTANT:
   Widget _buildSelectIngredientsCard(
     List<Map<String, dynamic>> availableIngredients,
   ) {
-    // Get unique categories
     final Set<String> categoriesSet = {'All'};
     for (var ing in availableIngredients) {
       categoriesSet.add(ing['category']);
     }
     final categories = categoriesSet.toList();
 
-    // Filter by category
     List<Map<String, dynamic>> filteredIngredients = availableIngredients;
     if (_selectedCategory != 'All') {
       filteredIngredients = availableIngredients
@@ -520,7 +705,6 @@ IMPORTANT:
           .toList();
     }
 
-    // Filter by search query
     final searchQuery = _searchController.text.toLowerCase();
     if (searchQuery.isNotEmpty) {
       filteredIngredients = filteredIngredients
@@ -530,7 +714,6 @@ IMPORTANT:
           .toList();
     }
 
-    // Sort: expiring soon first, then by name
     filteredIngredients.sort((a, b) {
       if (a['status'] != b['status']) {
         return a['status'] == 'expiring_soon' ? -1 : 1;
@@ -562,7 +745,6 @@ IMPORTANT:
             style: TextStyle(color: Colors.grey[700]),
           ),
           const SizedBox(height: 12),
-          // Search
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
@@ -580,7 +762,7 @@ IMPORTANT:
             ),
           ),
           const SizedBox(height: 10),
-          // Categories
+          // Category filter
           Wrap(
             spacing: 8,
             runSpacing: 6,
@@ -608,8 +790,45 @@ IMPORTANT:
                 )
                 .toList(),
           ),
+          const SizedBox(height: 10),
+          // Difficulty filter
+          const Text(
+            'Recipe Difficulty:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2D2D3D),
+            ),
+          ),
           const SizedBox(height: 8),
-          // Ingredient list
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: ['All', 'Easy', 'Medium', 'Hard']
+                .map(
+                  (d) => ChoiceChip(
+                    label: Text(d, style: const TextStyle(fontSize: 12)),
+                    selected: _selectedDifficulty == d,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedDifficulty = d;
+                      });
+                    },
+                    selectedColor: const Color(0xFF469E9C),
+                    backgroundColor: _getDifficultyColor(d),
+                    labelStyle: TextStyle(
+                      color: _selectedDifficulty == d
+                          ? Colors.white
+                          : Colors.black87,
+                      fontWeight: _selectedDifficulty == d
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 8),
           if (filteredIngredients.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
@@ -635,13 +854,13 @@ IMPORTANT:
           else
             Column(
               children: filteredIngredients.map((ing) {
-                final id = ing['id']; // Use ID instead of name
+                final id = ing['id'];
                 final name = ing['name'];
                 final quantity = ing['quantity'];
                 final unit = ing['unit'];
                 final status = ing['status'];
                 final daysUntilExpiry = ing['daysUntilExpiry'];
-                final selected = _selected.contains(id); // Check by ID
+                final selected = _selected.contains(id);
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -667,9 +886,9 @@ IMPORTANT:
                         onChanged: (v) {
                           setState(() {
                             if (v == true) {
-                              _selected.add(id); // Add ID instead of name
+                              _selected.add(id);
                             } else {
-                              _selected.remove(id); // Remove by ID
+                              _selected.remove(id);
                             }
                           });
                         },
@@ -758,7 +977,7 @@ IMPORTANT:
           Icon(Icons.ramen_dining, size: 36, color: Colors.grey[700]),
           const SizedBox(height: 12),
           const Text(
-            'No Recipes Yet',
+            'No Saved Recipes Yet',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -767,8 +986,9 @@ IMPORTANT:
           ),
           const SizedBox(height: 8),
           Text(
-            'Select ingredients and click \'Generate\' to see suggestions.',
+            'Select ingredients and generate recipes to get started!',
             style: TextStyle(color: Colors.grey[700]),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -776,63 +996,166 @@ IMPORTANT:
   }
 
   Widget _buildSavedRecipesSection() {
-    final saved = [
-      {'title': 'Hearty Beef Stew'},
-      {'title': 'Lentil Soup'},
-    ];
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
-          const Text(
-            'Saved Recipes',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFF2D2D3D),
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Saved Recipes',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2D2D3D),
+                ),
+              ),
+              Text(
+                '${_savedRecipes.length} recipe${_savedRecipes.length != 1 ? 's' : ''}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: saved
-                .map(
-                  (r) => Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5F3FF),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 0.85,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: _savedRecipes.length,
+            itemBuilder: (context, index) {
+              final recipe = _savedRecipes[index];
+              return InkWell(
+                onTap: () => _showSavedRecipeDialog(recipe),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F3FF),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            Icons.bookmark,
-                            size: 28,
-                            color: Colors.grey[800],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            r['title']!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 6),
-                          TextButton(
-                            onPressed: () {},
-                            child: const Text(
-                              'View',
-                              style: TextStyle(color: Color(0xFF469E9C)),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF469E9C).withOpacity(0.2),
+                              shape: BoxShape.circle,
                             ),
+                            child: const Icon(
+                              Icons.restaurant,
+                              size: 24,
+                              color: Color(0xFF469E9C),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, size: 20),
+                            onPressed: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: const Text('Delete Recipe'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this recipe?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.red,
+                                      ),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (confirm == true) {
+                                _deleteSavedRecipe(recipe['id']);
+                              }
+                            },
+                            color: Colors.red[700],
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              recipe['name'] ?? 'Untitled',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            Chip(
+                              label: Text(
+                                recipe['difficulty'] ?? 'Medium',
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                              backgroundColor: _getDifficultyColor(
+                                recipe['difficulty'],
+                              ),
+                              padding: EdgeInsets.zero,
+                              materialTapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () => _showSavedRecipeDialog(recipe),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF469E9C),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            'View',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                )
-                .toList(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -869,7 +1192,7 @@ IMPORTANT:
               if (index == 1) Navigator.pushNamed(context, '/inventory');
               if (index == 2) Navigator.pushNamed(context, '/recipes');
               if (index == 3) Navigator.pushNamed(context, '/spoilage');
-              if (index == 4) Navigator.pushNamed(context, '/procurement');
+              if (index == 4) Navigator.pushNamed(context, '/profile');
             },
             type: BottomNavigationBarType.fixed,
             backgroundColor: Colors.white,
@@ -900,9 +1223,9 @@ IMPORTANT:
                 label: 'Spoilage',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.local_grocery_store_outlined),
-                activeIcon: Icon(Icons.local_grocery_store),
-                label: 'Procurement',
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
               ),
             ],
           ),
