@@ -1022,6 +1022,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   value: 'pc',
                                   child: Text('pc'),
                                 ),
+                                DropdownMenuItem(value: 'L', child: Text('L')),
+                                DropdownMenuItem(
+                                  value: 'mL',
+                                  child: Text('mL'),
+                                ),
                               ],
                               onChanged: isSaving
                                   ? null
