@@ -19,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     'Progress, not perfection. Improvement compounds when you stay consistent even on ordinary days.',
     'Use what you have. Protect what you need. Stewardship begins with attention to the overlooked items.',
     'Consistency beats motivation; systems outlast moods. Build routines that defend freshness and value.',
-    'Your choices today shape tomorrow’s savings—financial, environmental, and personal clarity.',
+    'Your choices today shape tomorrow\'s savings—financial, environmental, and personal clarity.',
     'Do less wasting. Do more living. Free space, free mind, free intention for what matters.',
     'Every saved item is a quiet victory against excess and neglect—celebrate the subtle wins.',
     'Mindful actions create meaningful impact; reducing spoilage is a ripple that reaches far.',
@@ -77,7 +77,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      // If no user is logged in, redirect to login screen.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.pushReplacementNamed(context, '/login');
       });
@@ -97,9 +96,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Align(
+        title: const Align(
           alignment: Alignment.centerRight,
-          child: const Text(
+          child: Text(
             'Profile',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
@@ -114,91 +113,116 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Center(
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    radius: 48,
-                    backgroundColor: const Color(0xFFA0D4CF).withOpacity(0.15),
-                    backgroundImage: photoUrl != null
-                        ? NetworkImage(photoUrl)
-                        : null,
-                    child: photoUrl == null
-                        ? const Icon(
-                            Icons.person,
-                            size: 48,
-                            color: Color(0xFF469E9C),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    displayName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
+                  Center(
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 48,
+                          backgroundColor: const Color(
+                            0xFFA0D4CF,
+                          ).withOpacity(0.15),
+                          backgroundImage: photoUrl != null
+                              ? NetworkImage(photoUrl)
+                              : null,
+                          child: photoUrl == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 48,
+                                  color: Color(0xFF469E9C),
+                                )
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          displayName,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          email,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Text(
-                    email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w500,
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F7FB),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.format_quote,
+                          color: Color(0xFF469E9C),
+                          size: 28,
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            _dailyQuote,
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              height: 1.35,
+                              color: Color(0xFF2D2D3D),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  SizedBox(
+                    height: 260,
+                    child: Image.asset(
+                      'lib/assets/logo.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(18),
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF6F7FB),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.format_quote,
-                    color: Color(0xFF469E9C),
-                    size: 28,
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      _dailyQuote,
-                      textAlign: TextAlign.left,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        height: 1.35,
-                        color: Color(0xFF2D2D3D),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          // Logout button pinned at bottom
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -2),
+                ),
+              ],
             ),
-            // Logo between quote and logout
-            SizedBox(
-              height: 260, // increased from 120 to push logout button down
-              child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
+            child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
                   await FirebaseAuth.instance.signOut();
-                  if (mounted)
+                  if (mounted) {
                     Navigator.pushReplacementNamed(context, '/login');
+                  }
                 },
                 icon: const Icon(Icons.logout, color: Colors.white),
                 style: ElevatedButton.styleFrom(
@@ -220,8 +244,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNavBar(),
     );
