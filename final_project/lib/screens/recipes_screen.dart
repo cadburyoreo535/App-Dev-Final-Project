@@ -20,12 +20,13 @@ class _RecipesScreenState extends State<RecipesScreen> {
 
   final Set<String> _selected = {};
   String _selectedCategory = 'All';
-  String _selectedDifficulty = 'All'; // Add this
+  String _selectedDifficulty = 'All';
   List<Map<String, dynamic>> _availableIngredients = [];
   bool _isInitialized = false;
   bool _isGenerating = false;
   List<Map<String, dynamic>> _generatedRecipes = [];
-  List<Map<String, dynamic>> _savedRecipes = []; // Add this
+  List<Map<String, dynamic>> _savedRecipes = [];
+  bool _isLoadingRecipes = true; // Add this
 
   @override
   void dispose() {
@@ -36,23 +37,61 @@ class _RecipesScreenState extends State<RecipesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadSavedRecipes(); // Add this
+    _loadSavedRecipes();
   }
 
-  // Load saved recipes from Firestore
-  void _loadSavedRecipes() {
-    _firestore
-        .collection('savedRecipes')
-        .where('userId', isEqualTo: _auth.currentUser?.uid)
-        .orderBy('savedAt', descending: true)
-        .snapshots()
-        .listen((snapshot) {
-          setState(() {
-            _savedRecipes = snapshot.docs
-                .map((doc) => {'id': doc.id, ...doc.data()})
-                .toList();
-          });
+  // Fixed: Load saved recipes from Firestore
+  void _loadSavedRecipes() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      // Use a one-time fetch first
+      final snapshot = await _firestore
+          .collection('savedRecipes')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _savedRecipes = snapshot.docs
+              .map((doc) => {'id': doc.id, ...doc.data()})
+              .toList();
+          _isLoadingRecipes = false;
         });
+      }
+
+      // Then set up real-time listener
+      _firestore
+          .collection('savedRecipes')
+          .where('userId', isEqualTo: user.uid)
+          .snapshots()
+          .listen((snapshot) {
+            if (mounted) {
+              setState(() {
+                _savedRecipes = snapshot.docs
+                    .map((doc) => {'id': doc.id, ...doc.data()})
+                    .toList();
+
+                // Sort by savedAt if it exists
+                _savedRecipes.sort((a, b) {
+                  final aTime = a['savedAt'] as Timestamp?;
+                  final bTime = b['savedAt'] as Timestamp?;
+
+                  if (aTime == null || bTime == null) return 0;
+                  return bTime.compareTo(aTime); // Descending order
+                });
+              });
+            }
+          });
+    } catch (e) {
+      print('Error loading saved recipes: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingRecipes = false;
+        });
+      }
+    }
   }
 
   // Save recipe to Firestore
@@ -680,9 +719,20 @@ IMPORTANT:
           const SizedBox(height: 12),
           _buildSelectIngredientsCard(_availableIngredients),
           const SizedBox(height: 12),
-          if (_savedRecipes.isEmpty) _buildNoRecipesCard(),
+          // Show loading state or recipes
+          if (_isLoadingRecipes)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(24),
+              child: const Center(
+                child: CircularProgressIndicator(color: Color(0xFF469E9C)),
+              ),
+            )
+          else if (_savedRecipes.isEmpty)
+            _buildNoRecipesCard()
+          else
+            _buildSavedRecipesSection(),
           const SizedBox(height: 16),
-          if (_savedRecipes.isNotEmpty) _buildSavedRecipesSection(),
           const SizedBox(height: 80),
         ],
       ),
