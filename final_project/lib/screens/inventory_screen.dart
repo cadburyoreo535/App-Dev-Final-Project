@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -629,22 +630,37 @@ class _InventoryScreenState extends State<InventoryScreen> {
     IconData itemIcon;
     switch (category.toLowerCase()) {
       case 'vegetables':
-        itemIcon = Icons.local_florist;
-        break;
-      case 'meat':
-        itemIcon = Icons.restaurant;
+        itemIcon = FontAwesomeIcons.carrot;
         break;
       case 'dairy':
-        itemIcon = Icons.local_drink;
+        itemIcon = FontAwesomeIcons.cheese;
         break;
-      case 'fruits':
-        itemIcon = Icons.apple;
+      case 'meat':
+        itemIcon = FontAwesomeIcons.drumstickBite;
+        break;
+      case 'poultry':
+        itemIcon = FontAwesomeIcons.egg;
         break;
       case 'grains':
-        itemIcon = Icons.grain;
+        itemIcon = FontAwesomeIcons.breadSlice;
+        break;
+      case 'fruits':
+        itemIcon = FontAwesomeIcons.appleWhole;
+        break;
+      case 'seafood':
+        itemIcon = FontAwesomeIcons.fish;
+        break;
+      case 'pantry items':
+        itemIcon = FontAwesomeIcons.boxOpen;
+        break;
+      case 'spices & seasonings':
+        itemIcon = FontAwesomeIcons.pepperHot;
+        break;
+      case 'beverages':
+        itemIcon = FontAwesomeIcons.mugHot;
         break;
       default:
-        itemIcon = Icons.fastfood;
+        itemIcon = FontAwesomeIcons.boxOpen;
     }
 
     return Container(
