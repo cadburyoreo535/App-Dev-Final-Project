@@ -96,6 +96,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset('lib/assets/logo.png', fit: BoxFit.contain),
+        ),
         title: const Align(
           alignment: Alignment.centerRight,
           child: Text(
