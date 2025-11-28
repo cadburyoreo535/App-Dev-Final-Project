@@ -285,11 +285,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             ? null
                             : () async {
                                 final now = DateTime.now();
+
+                                // Ensure selectedDate is within valid range
+                                DateTime? initialDate = selectedDate;
+                                final minDate = DateTime(now.year - 10);
+                                final maxDate = DateTime(now.year + 10);
+
+                                // Clamp the initial date to be within range
+                                if (initialDate!.isBefore(minDate)) {
+                                  initialDate = minDate;
+                                } else if (initialDate.isAfter(maxDate)) {
+                                  initialDate = maxDate;
+                                }
+
                                 final picked = await showDatePicker(
                                   context: context,
-                                  initialDate: selectedDate ?? now,
-                                  firstDate: DateTime(now.year - 10),
-                                  lastDate: DateTime(now.year + 10),
+                                  initialDate: initialDate,
+                                  firstDate: minDate,
+                                  lastDate: maxDate,
                                 );
                                 if (picked != null) {
                                   setDialogState(() => selectedDate = picked);
@@ -307,14 +320,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                selectedDate == null
-                                    ? 'Select date'
-                                    : '${selectedDate?.year}-${selectedDate?.month.toString().padLeft(2, '0')}-${selectedDate?.day.toString().padLeft(2, '0')}',
-                                style: TextStyle(
-                                  color: selectedDate == null
-                                      ? Colors.grey
-                                      : Colors.black87,
-                                ),
+                                '${selectedDate?.year}-${selectedDate?.month.toString().padLeft(2, '0')}-${selectedDate?.day.toString().padLeft(2, '0')}',
+                                style: const TextStyle(color: Colors.black87),
                               ),
                               const Icon(Icons.calendar_today, size: 18),
                             ],
@@ -1123,11 +1130,24 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             ? null
                             : () async {
                                 final now = DateTime.now();
+
+                                // Ensure selectedDate is within valid range
+                                DateTime initialDate = selectedDate;
+                                final minDate = DateTime(now.year - 10);
+                                final maxDate = DateTime(now.year + 10);
+
+                                // Clamp the initial date to be within range
+                                if (initialDate.isBefore(minDate)) {
+                                  initialDate = minDate;
+                                } else if (initialDate.isAfter(maxDate)) {
+                                  initialDate = maxDate;
+                                }
+
                                 final picked = await showDatePicker(
                                   context: context,
-                                  initialDate: selectedDate,
-                                  firstDate: DateTime(now.year - 10),
-                                  lastDate: DateTime(now.year + 10),
+                                  initialDate: initialDate,
+                                  firstDate: minDate,
+                                  lastDate: maxDate,
                                 );
                                 if (picked != null) {
                                   setDialogState(() => selectedDate = picked);
