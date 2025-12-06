@@ -29,7 +29,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final priceController = TextEditingController();
     String selectedCategory = 'Vegetables';
     String selectedUnit = 'kg';
-    DateTime? selectedDate;
+    DateTime selectedDate = DateTime.now().add(
+      const Duration(days: 7),
+    ); // Initialize with default date
     bool isSaving = false;
 
     showDialog(
@@ -285,22 +287,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             ? null
                             : () async {
                                 final now = DateTime.now();
-
-                                // Ensure selectedDate is within valid range
-                                DateTime? initialDate = selectedDate;
-                                final minDate = DateTime(now.year - 10);
+                                final minDate = now;
                                 final maxDate = DateTime(now.year + 10);
-
-                                // Clamp the initial date to be within range
-                                if (initialDate!.isBefore(minDate)) {
-                                  initialDate = minDate;
-                                } else if (initialDate.isAfter(maxDate)) {
-                                  initialDate = maxDate;
-                                }
 
                                 final picked = await showDatePicker(
                                   context: context,
-                                  initialDate: initialDate,
+                                  initialDate: selectedDate,
                                   firstDate: minDate,
                                   lastDate: maxDate,
                                 );
@@ -320,7 +312,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${selectedDate?.year}-${selectedDate?.month.toString().padLeft(2, '0')}-${selectedDate?.day.toString().padLeft(2, '0')}',
+                                '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
                                 style: const TextStyle(color: Colors.black87),
                               ),
                               const Icon(Icons.calendar_today, size: 18),
@@ -356,18 +348,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       : () async {
                           if (!formKey.currentState!.validate()) return;
 
-                          if (selectedDate == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Please select an expiration date',
-                                ),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                            return;
-                          }
-
                           setDialogState(() => isSaving = true);
 
                           try {
@@ -387,7 +367,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                 priceController.text.trim(),
                               ),
                               'expirationDate': Timestamp.fromDate(
-                                selectedDate!,
+                                selectedDate,
                               ),
                               'userId': user.uid,
                               'createdAt': FieldValue.serverTimestamp(),
@@ -1130,22 +1110,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             ? null
                             : () async {
                                 final now = DateTime.now();
-
-                                // Ensure selectedDate is within valid range
-                                DateTime initialDate = selectedDate;
-                                final minDate = DateTime(now.year - 10);
+                                final minDate = now;
                                 final maxDate = DateTime(now.year + 10);
-
-                                // Clamp the initial date to be within range
-                                if (initialDate.isBefore(minDate)) {
-                                  initialDate = minDate;
-                                } else if (initialDate.isAfter(maxDate)) {
-                                  initialDate = maxDate;
-                                }
 
                                 final picked = await showDatePicker(
                                   context: context,
-                                  initialDate: initialDate,
+                                  initialDate: selectedDate,
                                   firstDate: minDate,
                                   lastDate: maxDate,
                                 );
